@@ -57,12 +57,14 @@ def time_to_label(time, fps = 20):
     while True:
         index = int(1 + (t-1) * 100 * 1/fps)
         if index > time.shape[0]:
+            print(index)
             return labels
         labels.append(time[index])
         t += 1
 
 def labels_to_txt(labels, annotation_name, save_path):
     for i in range(1,1+len(labels)):
+        print("\r",i, end = "")
         save_dir_resized = save_path + annotation_name[:-4] + "_resized/"
         with open(save_dir_resized + str(i).zfill(5) + ".txt", "w") as f:
             f.write(labels[i-1])
@@ -86,11 +88,16 @@ def label_process():
     save_path = "../../data/tmp_images/"
     # annotation_name = "r1.txt"
     video_list = listed_video()
+    video_list.sort()
     for video_name in video_list:
+        print(video_name)
         annotation_name = video_name[:-4] + ".txt"
         time = load_annotation(annotation_path, annotation_name)
         labels = time_to_label(time)
+        print(len(time), len(labels))
+
         labels_to_txt(labels, annotation_name, save_path)
+        # exit()
     
 
 
