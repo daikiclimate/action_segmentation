@@ -3,6 +3,9 @@ import torch
 import torchvision.models as models
 import torchvision.transforms as transforms
 
+import time
+
+
 from PIL import Image
 
 source_path = "../../data/tmp_images/"
@@ -38,43 +41,45 @@ def predict():
     else:
         net = models.mobilenet_v2(pretrained=True)
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    net = net.to(device)
+    print(device)
+    # exit()
     labels = []
     for vid in v:
         # if os.path.exists(f):
         #     continue
         # exit()
-        print("\r", vid, end = "")
+        # print("\r", vid, end = "")
+        print(vid)
+        t0 = time.time()
         img_list = get_resized_image_list(vid)
         feature_list = []
         for img in img_list:
             if not(os.path.exists(img) and os.path.exists(img[:-4] + ".jpg")):
                 break
-        # for img in img_list[:5]:
+            with open(img, mode = "r") as f:
+                labels.append(f.read())
             #image process
             print("\r", img, end = "")
             image =  Image.open(img[:-4]+".jpg")
             image = transform(image)
             image = image.reshape(1, image.shape[0], image.shape[1], image.shape[2])
-            # print(image.shape)
+            image = image.to(device)
 
             feature = net.features(image)
-            feature_list.append(feature[0].detach().numpy())
+            feature_list.append(feature[0].cpu().detach().numpy())
+            # exit()
 
-        # for img in img_list:
-            # if os.path.exists(img) and os.path.exists(img[:-4] + ".jpg"):
-            #     break
-
-            with open(img, mode = "r") as f:
-                labels.append(f.read())
-        
-
+        t1 = time.time()
+        print("\n",round(t1-t0),"sec")
         f = "../../data/feature_ext/"+model+"/" + vid[:-4] + ".pth"
-        feat = torch.tensor(feature_list)
-        print(f)
-        torch.save(feat, f)
+        # feat = torch.tensor(feature_list)
+        # print(f)
+        # torch.save(feat, f)
 
         with open(f[:-4] + ".txt", mode = "w") as f:
-            f.writelines(labels)
+            f.writelines("\n".join(labels))
         continue
 
 
