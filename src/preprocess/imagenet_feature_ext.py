@@ -8,7 +8,10 @@ import time
 
 from PIL import Image
 
+# should be config
 source_path = "../../data/tmp_images/"
+model = "vgg"
+model = "mobilenet"
 
 
 def get_video_names():
@@ -40,7 +43,6 @@ def predict():
         ]
     )
 
-    model = "vgg"
     # model = "mobilenet"
     if model == "vgg":
         net = models.vgg16(pretrained=True)

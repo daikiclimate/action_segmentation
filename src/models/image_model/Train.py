@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
+import torchvision.transforms as transforms
 
-from featDataset import featDataset
-from featModel import featModel
+from featDataset import featDataset, imgDataset
+from featModel import featModel, imgModel
 
 import torch.optim as optim
 import torch.utils.data as data
@@ -18,6 +19,20 @@ import time
 
 SEED = 14
 torch.manual_seed(SEED)
+
+
+def return_transform():
+    transform = transforms.Compose(
+        [
+            # transforms.ToPILImage(),
+            transforms.Resize(255),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.RandomHorizontalFlip(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
+    return transform
 
 
 def get_arg():
@@ -41,10 +56,19 @@ def main():
     else:
         torch.set_default_tensor_type("torch.FloatTensor")
 
-    Traindataset = featDataset(mode="train")
-    Testdataset = featDataset(mode="test")
+    if config.type == "feat":
+        Traindataset = featDataset(mode="train", feat_model=config.model)
+        Testdataset = featDataset(mode="test", feat_model=config.model)
+        if config.model == "mobilenet":
+            model = featModel(input_channel=1280)
+        else:
+            model = featModel()
 
-    model = featModel()
+    elif config.type == "img":
+        Traindataset = imgDataset(mode="train", transform=return_transform())
+        Testdataset = imgDataset(mode="test", transform=return_transform())
+        model = imgModel()
+
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=config.lr)
     criterion = nn.CrossEntropyLoss()
@@ -63,13 +87,14 @@ def main():
             dataset_perm=dataset_perm,
         )
         t1 = time.time()
-        print("trainin time :", round(r1 - r0))
+        print("\ntrainin time :", round(t1 - t0))
         test(model=model, dataset=Testdataset, config=config, device=device)
 
 
 def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
     model.train()
     total_loss = 0
+    counter = 0
     for i in dataset_perm:
         batch_dataset, batch_label = batch_maker(
             dataset[i], batch_size=config.batch_size
@@ -86,11 +111,13 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        print("\r", loss.item(), end="")
+
+            total_loss += loss.item()
+            counter += 1
+        print("\r", total_loss / counter, end="")
 
 
 def test(model, dataset, config, device):
-    print("")
     model.eval()
     labels = []
     preds = []

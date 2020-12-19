@@ -13,7 +13,7 @@ class featDataset(data.Dataset):
     def __init__(
         self, mode="train", excel_dir="../../../data/information.xlsx", feat_model="vgg"
     ):
-        self.feat_model = "vgg"
+        self.feat_model = feat_model
         df = pd.read_excel(excel_dir)
         df = df[df["mode"] == mode]
         self.files = df.filename.values
@@ -47,8 +47,63 @@ class featDataset(data.Dataset):
         return len(self.files)
 
 
+class imgDataset(data.Dataset):
+    def __init__(
+        self,
+        mode="train",
+        excel_dir="../../../data/information.xlsx",
+        feat_model="vgg",
+        transform=None,
+    ):
+        self.feat_model = feat_model
+        df = pd.read_excel(excel_dir)
+        df = df[df["mode"] == mode]
+        self.files = df.filename.values
+        self.transform = transform
+
+    def __getitem__(self, idx):
+        path = os.path.join(
+            "../../../data/tmp_images/",
+            self.files[idx][:-4] + "_resized",
+        )
+        files = os.listdir(path)
+        images = [f for f in files if f[-3:] == "jpg"]
+        texts = [f for f in files if f[-3:] == "txt"]
+        images.sort()
+        texts.sort()
+        num = min(len(images), len(texts))
+        if len(images) > len(texts):
+            images = images[:num]
+        elif len(images) < len(texts):
+            texts = texts[:num]
+
+        if len(images) != len(texts):
+            assert "image size and texts size not match"
+            exit()
+        # print(len(images), len(texts))
+
+        labels = []
+        for i in texts:
+            with open(os.path.join(path, i), mode="r") as f:
+                labels.append(f.read())
+        labels = [utils.label_to_id(i) for i in labels]
+        labels = torch.tensor(labels)
+        imgs = []
+        for i in images:
+            im = Image.open(os.path.join(path, i))
+            im = self.transform(im)
+            imgs.append(im.unsqueeze(0))
+        imgs = torch.cat(imgs, axis=0)
+        return imgs, labels
+
+    def __len__(self):
+        return len(self.files)
+
+
 if __name__ == "__main__":
-    d = featDataset()
+    # d = featDataset()
+    d = imgDataset()
+
     d[0]
 
 #

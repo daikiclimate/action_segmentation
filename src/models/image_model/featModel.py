@@ -1,5 +1,37 @@
 import torch
 import torch.nn as nn
+import torchvision.models as models
+
+
+class classifier(nn.Module):
+    def __init__(self, input_channel=512, align_size=8):
+        super(classifier, self).__init__()
+        self.AdaptivePool = nn.AdaptiveAvgPool2d((align_size, align_size))
+        self.hidden1 = 100
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(input_channel, self.hidden1, kernel_size=3, padding=1),
+            nn.BatchNorm2d(self.hidden1),
+            nn.ReLU(inplace=True),
+        )
+        self.hidden2 = 10
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(self.hidden1, self.hidden2, kernel_size=1, padding=0),
+            nn.BatchNorm2d(self.hidden2),
+            nn.ReLU(inplace=True),
+        )
+        self.fc = nn.Sequential(
+            nn.Linear(self.hidden2 * 8 * 8, self.hidden1), nn.ReLU(inplace=True)
+        )
+        self.fc2 = nn.Linear(self.hidden1, 11)
+
+    def forward(self, x):
+        x = self.AdaptivePool(x)
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = x.view(-1, self.hidden2 * 8 * 8)
+        x = self.fc(x)
+        x = self.fc2(x)
+        return x
 
 
 class featModel(nn.Module):
@@ -8,27 +40,27 @@ class featModel(nn.Module):
 
         # input shape = (512, 8, 8)
         # if feature extraction model is vgg
-        self.AdaptivePool = nn.AdaptiveAvgPool2d((8, 8))
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(input_channel, 100, kernel_size=3, padding=1),
-            nn.BatchNorm2d(100),
-            nn.ReLU(inplace=True),
-        )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(100, 3, kernel_size=1, padding=0),
-            nn.BatchNorm2d(3),
-            nn.ReLU(inplace=True),
-        )
-        self.fc = nn.Sequential(nn.Linear(3 * 8 * 8, 100), nn.ReLU(inplace=True))
-        self.fc2 = nn.Linear(100, 11)
+
+        self.classifier = classifier(input_channel=input_channel, align_size=8)
 
     def forward(self, x):
-        x = self.AdaptivePool(x)
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = x.view(-1, 3 * 8 * 8)
-        x = self.fc(x)
-        x = self.fc2(x)
+        x = self.classifier(x)
+        return x
+
+
+class imgModel(nn.Module):
+    def __init__(self):
+        super(imgModel, self).__init__()
+        self.vgg16 = models.vgg16(pretrained=True)
+        self.vgg16 = self.vgg16.features
+
+        # input shape = (512, 8, 8)
+        # if feature extraction model is vgg
+        self.classifier = classifier(input_channel=512, align_size=8)
+
+    def forward(self, x):
+        x = self.vgg16(x)
+        x = self.classifier(x)
         return x
 
 
@@ -40,4 +72,6 @@ if __name__ == "__main__":
         1, 512, 9, 9
     )
     m = featModel()
-    print(m(t).shape)
+    m = imgModel()
+    print(m)
+    # print(m(t).shape)
