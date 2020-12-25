@@ -17,6 +17,8 @@ import yaml
 import os
 import time
 
+from evaluater import evaluater
+
 SEED = 14
 torch.manual_seed(SEED)
 
@@ -73,6 +75,7 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=config.lr)
     criterion = nn.CrossEntropyLoss()
 
+    best_eval = 0
     for epoch in range(1, 1 + config.epochs):
         print("epoch:", epoch)
         dataset_perm = np.random.permutation(range(len(Traindataset)))
@@ -87,8 +90,15 @@ def main():
             dataset_perm=dataset_perm,
         )
         t1 = time.time()
-        print("\ntrainin time :", round(t1 - t0))
-        test(model=model, dataset=Testdataset, config=config, device=device)
+        print("\ntraining time :", round(t1 - t0))
+
+        best_eval = test(
+            model=model,
+            dataset=Testdataset,
+            config=config,
+            device=device,
+            best_eval=best_eval,
+        )
 
 
 def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
@@ -117,7 +127,7 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
         print("\r", total_loss / counter, end="")
 
 
-def test(model, dataset, config, device):
+def test(model, dataset, config, device, best_eval=0, th=0.6):
     model.eval()
     labels = []
     preds = []
@@ -134,16 +144,24 @@ def test(model, dataset, config, device):
             labels.extend(label.detach().numpy())
             preds.extend(output.cpu().detach().numpy())
     labels, preds = np.array(labels), np.array(preds)
-    eval.acc(labels, preds)
+    eval.set_data(labels, preds)
+    eval.print_eval(["accuracy"])
+    score = eval.return_eval_score()
+    print(score)
+    if score > best_eval and score > th:
+        path = os.path.join(
+            config.save_folder,
+            config.model
+            + "_"
+            + config.type
+            + "_"
+            + str(score).replace(".", "")
+            + ".pth",
+        )
+        torch.save(model.state_dict(), path)
+    return max(score, best_eval)
 
-
-class evaluater:
-    def __init__(self):
-        pass
-
-    def acc(self, x, y):
-        accuracy = len(x[x == y]) / len(x)
-        print("accuracy:", accuracy)
+    # eval.acc(labels, preds)
 
 
 def batch_maker(dataset, shuffle=True, drop_last=True, batch_size=8):
