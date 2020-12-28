@@ -18,3 +18,12 @@ Only image_model is valid now
 training code is in src/models/
 image_model is a model for each frame
 video_model is a model for video which considers context of previous and suffix flames. video_model is not Implemented
+
+#check list
+- [x] build image base model
+- [x] build image base model demo
+- [ ] build video base model
+- [ ] build video base model demo
+- [ ] reforctoring demo code
+- [ ] reforctoring train code
+- [ ] Add sound in demo
