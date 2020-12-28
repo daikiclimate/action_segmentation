@@ -1,17 +1,20 @@
-import cv2
 import sys
 
+import cv2
+
 sys.path.append("../../")
-from src.models.image_model import utils
-from src.models.image_model.featModel import featModel
+import argparse
+import os
+
+import pandas as pd
 import torch
+import torch.nn as nn
 import torchvision.models as models
 import torchvision.transforms as transforms
-import torch.nn as nn
-import os
-import pandas as pd
 import tqdm
-import argparse
+
+from src.models.image_model import utils
+from src.models.image_model.featModel import featModel
 
 
 def get_args():
@@ -23,10 +26,10 @@ def get_args():
 
 def main():
     args = get_args()
-    video_path = "../../data/videos/r21.mp4"
-    output_name = "../../data/demo/r21.mp4"
-    video_path = args.input_file
-    output_name = args.output_name
+    # video_path = "../../data/videos/r21.mp4"
+    # output_name = "../../data/demo/r21.mp4"
+    video_path = os.path.join("../../data/videos/", args.input_file)
+    output_name = os.path.join("../../demo", args.output_name)
     build_labeled_video(video_path, output_name)
 
 

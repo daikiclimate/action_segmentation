@@ -1,23 +1,19 @@
+import argparse
+import os
+import pickle
+import time
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
 import torchvision.transforms as transforms
-
+import yaml
+from addict import Dict
+from evaluater import evaluater
 from featDataset import featDataset, imgDataset
 from featModel import featModel, imgModel
-
-import torch.optim as optim
-import torch.utils.data as data
-import argparse
-import numpy as np
-
-from addict import Dict
-import yaml
-import os
-import time
-
-from evaluater import evaluater
 
 SEED = 14
 torch.manual_seed(SEED)
@@ -144,6 +140,8 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
             labels.extend(label.detach().numpy())
             preds.extend(output.cpu().detach().numpy())
     labels, preds = np.array(labels), np.array(preds)
+    # with open("test.pkl", "wb") as f:
+    # pickle.dump(preds, f)
     eval.set_data(labels, preds)
     eval.print_eval(["accuracy"])
     score = eval.return_eval_score()
@@ -158,7 +156,7 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
             + str(score).replace(".", "")
             + ".pth",
         )
-        torch.save(model.state_dict(), path)
+        # torch.save(model.state_dict(), path)
     return max(score, best_eval)
 
     # eval.acc(labels, preds)

@@ -1,11 +1,9 @@
 import os
+import time
+
 import torch
 import torchvision.models as models
 import torchvision.transforms as transforms
-
-import time
-
-
 from PIL import Image
 
 # should be config

@@ -1,17 +1,20 @@
+import math
 import os
+
+import numpy as np
 import pandas as pd
 import torch
 import torch.utils.data as data
-from PIL import Image
-import math
-import numpy as np
-
 import utils
+from PIL import Image
 
 
 class featDataset(data.Dataset):
     def __init__(
-        self, mode="train", excel_dir="../../../data/information.xlsx", feat_model="vgg"
+        self,
+        mode="train",
+        excel_dir="../../../data/training/information.xlsx",
+        feat_model="vgg",
     ):
         self.feat_model = feat_model
         df = pd.read_excel(excel_dir)
@@ -20,18 +23,16 @@ class featDataset(data.Dataset):
 
     def __getitem__(self, idx):
         path = (
-            "../../../data/feature_ext/"
+            "../../../data/training/feature_ext/"
             + self.feat_model
             + "/"
             + self.files[idx][:-4]
             + ".pth"
         )
         # path = "../../../data/feature_ext/" + self.feat_model + "/" + "r25" + ".pth"
-        # print(path)
         feature = torch.load(path)
-        # print(feature.shape)
         labelpath = (
-            "../../../data/feature_ext/"
+            "../../../data/training/feature_ext/"
             + self.feat_model
             + "/"
             + self.files[idx][:-4]
@@ -51,7 +52,7 @@ class imgDataset(data.Dataset):
     def __init__(
         self,
         mode="train",
-        excel_dir="../../../data/information.xlsx",
+        excel_dir="../../../data/training/information.xlsx",
         feat_model="vgg",
         transform=None,
     ):
@@ -63,7 +64,7 @@ class imgDataset(data.Dataset):
 
     def __getitem__(self, idx):
         path = os.path.join(
-            "../../../data/tmp_images/",
+            "../../../data/training/tmp_images/",
             self.files[idx][:-4] + "_resized",
         )
         files = os.listdir(path)

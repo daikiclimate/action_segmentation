@@ -1,11 +1,11 @@
+import math
 import os
+
+import numpy as np
 import pandas as pd
 import torch
 import torch.utils.data as data
 from PIL import Image
-import math
-import numpy as np
-import os
 
 
 class Dataset(data.Dataset):

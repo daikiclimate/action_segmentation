@@ -1,7 +1,8 @@
+import os
+
+import cv2
 import ffmpeg
 import numpy as np
-import os
-import cv2
 import pandas as pd
 
 
