@@ -11,12 +11,15 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 import yaml
 from addict import Dict
-from evaluater import evaluater
 from featDataset import featDataset, imgDataset
 from featModel import featModel, imgModel
 
+from evaluater import evaluater
+
 SEED = 14
 torch.manual_seed(SEED)
+random.SEED(SEED)
+torch.cuda.manual_SEED_all(SEED)
 
 
 def return_transform():
@@ -34,7 +37,7 @@ def return_transform():
 
 
 def get_arg():
-    parser = argparse.ArgumentParser(description="Grid anchor based image cropping")
+    parser = argparse.ArgumentParser(description="image model for action segmentation")
     parser.add_argument("config", type=str, help="path of a config file")
     args = parser.parse_args()
 

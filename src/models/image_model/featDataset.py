@@ -5,8 +5,9 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.utils.data as data
-import utils
 from PIL import Image
+
+import utils
 
 
 class featDataset(data.Dataset):
