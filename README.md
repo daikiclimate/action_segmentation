@@ -1,4 +1,4 @@
-#demo
+# demo
 
 ```
 mkdir data
@@ -13,13 +13,13 @@ You need to put your Splatoon movie in data/videos/
 
 Only image_model is valid now
 
-#training
+# training
 
 training code is in src/models/
 image_model is a model for each frame
 video_model is a model for video which considers context of previous and suffix flames. video_model is not Implemented
 
-#check list
+# check list
 - [x] build image base model
 - [x] build image base model demo
 - [ ] build video base model
