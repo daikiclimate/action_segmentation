@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 
 
-class LSTM_classifier(nn.Module):
+class LSTMclassifier(nn.Module):
     def __init__(
         self,
         width_mult,
@@ -13,7 +13,7 @@ class LSTM_classifier(nn.Module):
         dropout=True,
         device="cuda:0",
     ):
-        super(LSTM_classifier, self).__init__()
+        super(LSTMclassifier, self).__init__()
         self.width_mult = width_mult
         self.lstm_layers = lstm_layers
         self.lstm_hidden = lstm_hidden
@@ -31,9 +31,9 @@ class LSTM_classifier(nn.Module):
             bidirectional=bidirectional,
         )
         if self.bidirectional:
-            self.lin = nn.Linear(2 * self.lstm_hidden, 9)
+            self.lin = nn.Linear(2 * self.lstm_hidden, 11)
         else:
-            self.lin = nn.Linear(self.lstm_hidden, 9)
+            self.lin = nn.Linear(self.lstm_hidden, 11)
         if self.dropout:
             self.drop = nn.Dropout(0.5)
 
@@ -84,17 +84,16 @@ class LSTM_classifier(nn.Module):
 
         # LSTM forward
         r_in = c_out.view(batch_size, timesteps, -1)
-        print(r_in.shape)
 
         r_out, states = self.rnn(r_in, self.hidden)
         out = self.lin(r_out)
-        out = out.view(batch_size * timesteps, 9)
+        out = out.view(batch_size * timesteps, 11)
 
         return out
 
 
 if __name__ == "__main__":
-    model = LSTM_classifier(1, 1, 256).cuda()
+    model = LSTMclassifier(1, 1, 256).cuda()
     data = torch.rand((1, 64, 512, 8, 8)).cuda()
     out = model(data)
     print(out.shape)

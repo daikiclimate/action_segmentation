@@ -80,14 +80,14 @@ def labels_to_txt(labels, annotation_name, save_path):
 
 
 def listed_video():
-    path = "../../data/"
+    path = "../../data/training"
     videos = os.listdir(path + "videos")
     return videos
 
 
 def image_process():
-    video_path = "../../data/videos/"
-    save_path = "../../data/tmp_images/"
+    video_path = "../../data/training/videos/"
+    save_path = "../../data/training/tmp_images/"
     video_list = listed_video()
     for video_name in video_list:
         video_to_images(video_name, video_path, save_path)
@@ -95,8 +95,8 @@ def image_process():
 
 
 def label_process():
-    annotation_path = "../../data/annotation/"
-    save_path = "../../data/tmp_images/"
+    annotation_path = "../../data/training/annotation/"
+    save_path = "../../data/training/tmp_images/"
     # annotation_name = "r1.txt"
     video_list = listed_video()
     video_list.sort()
@@ -115,13 +115,13 @@ if __name__ == "__main__":
     # image_process()
     label_process()
     exit()
-    video_path = "../../data/videos/"
+    video_path = "../../data/training/videos/"
     video_name = "r1.mp4"
-    save_path = "../../data/tmp_images/"
+    save_path = "../../data/training/tmp_images/"
     # video_to_images(video_name, video_path, save_path)
     # resize_images(video_name, save_path)
 
-    annotation_path = "../../data/"
+    annotation_path = "../../data/training"
     annotation_name = "r1.txt"
     time = load_annotation(annotation_path, annotation_name)
     time_to_label(time)

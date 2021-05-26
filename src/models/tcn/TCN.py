@@ -98,3 +98,28 @@ class TemporalConvNet(nn.Module):
 
     def forward(self, x):
         return self.network(x)
+
+
+class TCN(nn.Module):
+    def __init__(self, input_size, output_size, num_channels):
+        super(TCN, self).__init__()
+        self.tcn = TemporalConvNet(input_size, num_channels)
+        self.linear = nn.Linear(num_channels[-1], output_size)
+        self.init_weights()
+
+    def init_weights(self):
+        self.linear.weight.data.normal_(0, 0.01)
+
+    def forward(self, x):
+        x = self.tcn(x)
+        bs, seq, f = x.size()
+        x = x.view(bs * f, seq).contiguous()
+        x = self.linear(x)
+        return x
+
+
+if __name__ == "__main__":
+    model = TCN(1000, 11, [20, 20])
+    f = torch.randn(1, 1000, 20)
+    print(f.shape)
+    print(model(f).shape)

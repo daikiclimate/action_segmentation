@@ -1,3 +1,7 @@
 /data/training
 /data/demo/*mp4
+ 
+**/pychache/*
+__pycache__/
+
 

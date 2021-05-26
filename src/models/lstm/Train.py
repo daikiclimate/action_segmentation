@@ -14,10 +14,11 @@ import torch.optim as optim
 import utils
 import yaml
 from addict import Dict
-from mstcn import MultiStageModel
 
 # from model import Trainer
 from batch_gen import BatchGenerator
+# from mstcn import MultiStageModel
+from lstm import LSTMclassifier
 
 SEED = 14
 torch.manual_seed(SEED)
@@ -61,6 +62,7 @@ def main():
         "map": 9,
         "ending": 10,
     }
+    actions_dict = utils.label_to_id
     gt_path = "../../../data/training/feature_ext/vgg"
     features_path = "../../../data/training/feature_ext/vgg"
     Traindataset = BatchGenerator(num_classes, actions_dict, gt_path, features_path)
@@ -82,9 +84,7 @@ def main():
     # num_f_maps = 512 * 8 * 8
     # features_dim = 2048
 
-    model = MultiStageModel(
-        num_stages, num_layers, num_f_maps, features_dim, num_classes
-    )
+    model = LSTMclassifier(1, 1, 256)
 
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=config.lr)
@@ -125,26 +125,25 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm=Non
         srcdata, srclabel = dataset.next_batch(config.batch_size)
         bd, bl = batch_maker([srcdata[0], srclabel[0]])
         for data, label in zip(bd, bl):
-            print(data.shape)
-            exit()
             data = data.unsqueeze(0)
             label = label.unsqueeze(0)
             data = data.to(device)
             label = label.to(device)
-
-            output, clf_output = model(data)
+            clf_output = model(data)
             loss_clf = criterion(clf_output, label[0])
-            loss = 0
-            loss += loss_clf
-            for i in range(len(output)):
-                loss += criterion(output[i], label)
+            # loss = 0
+            # loss += loss_clf
+            # loss = loss_clf
+            # # for:wqai in range(len(output)):
+            #     loss += criterion(output[i], label)
 
             # backprop
             optimizer.zero_grad()
-            loss.backward()
+            # loss.backward()
+            loss_clf.backward()
             optimizer.step()
 
-            total_loss += loss.item()
+            total_loss += loss_clf.item()
             counter += 1
             print("\r", total_loss / counter, end="")
     dataset.reset()
@@ -163,8 +162,9 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
         # )
         # for data, label in zip(batch_dataset, batch_label):
         data = data.to(device)
-        output, _ = model(data)
-        output = torch.argmax(output[-1], axis=1)
+        output = model(data)
+        output = torch.argmax(output, axis=1)
+        # output = torch.argmax(output[-1], axis=1)
         # print(label.detach().numpy().shape)
         # print(preds.detach().numpy()[0])
 

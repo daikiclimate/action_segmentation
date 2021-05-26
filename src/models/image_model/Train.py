@@ -1,6 +1,7 @@
 import argparse
 import os
 import pickle
+import random
 import time
 
 import numpy as np
@@ -11,15 +12,14 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 import yaml
 from addict import Dict
-from featDataset import featDataset, imgDataset
-from featModel import featModel, imgModel
 
 from evaluater import evaluater
+from featDataset import featDataset, imgDataset
+from featModel import featModel, imgModel
+from stacking import stacking
 
 SEED = 14
 torch.manual_seed(SEED)
-random.SEED(SEED)
-torch.cuda.manual_SEED_all(SEED)
 
 
 def return_transform():
@@ -64,6 +64,8 @@ def main():
             model = featModel(input_channel=1280)
         else:
             model = featModel()
+    if config.type == "vgg_stacking":
+        model = stacking()
 
     elif config.type == "img":
         Traindataset = imgDataset(mode="train", transform=return_transform())
@@ -106,7 +108,7 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
     counter = 0
     for i in dataset_perm:
         batch_dataset, batch_label = batch_maker(
-            dataset[i], batch_size=config.batch_size
+            dataset[i], batch_size=config.batch_size, shuffle=config.shuffle
         )
         for data, label in zip(batch_dataset, batch_label):
 

@@ -7,13 +7,13 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 # should be config
-source_path = "../../data/tmp_images/"
+source_path = "../../data/training/tmp_images/"
 model = "vgg"
 model = "mobilenet"
 
 
 def get_video_names():
-    return os.listdir("../../data/videos")
+    return os.listdir("../../data/training/videos")
 
 
 def get_resized_image_list(video_name):
@@ -80,7 +80,7 @@ def predict():
 
         t1 = time.time()
         print("\n", round(t1 - t0), "sec")
-        f = "../../data/feature_ext/" + model + "/" + vid[:-4] + ".pth"
+        f = "../../data/training/feature_ext/" + model + "/" + vid[:-4] + ".pth"
         feat = torch.tensor(feature_list)
         # print(f)
         torch.save(feat, f)

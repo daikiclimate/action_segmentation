@@ -12,9 +12,11 @@ import torch.nn as nn
 import torch.optim as optim
 import yaml
 from addict import Dict
+
 # from model import Trainer
 from batch_gen import BatchGenerator
 from mstcn import MultiStageModel
+from TCN import TCN
 
 import evaluater
 import utils
@@ -82,9 +84,10 @@ def main():
     # num_f_maps = 512 * 8 * 8
     # features_dim = 2048
 
-    model = MultiStageModel(
-        num_stages, num_layers, num_f_maps, features_dim, num_classes
-    )
+    # model = MultiStageModel(
+    #     num_stages, num_layers, num_f_maps, features_dim, num_classes
+    # )
+    model = TCN(features_dim, 11, [20])
 
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=config.lr)
@@ -125,19 +128,15 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm=Non
         srcdata, srclabel = dataset.next_batch(config.batch_size)
         bd, bl = batch_maker([srcdata[0], srclabel[0]])
         for data, label in zip(bd, bl):
-            print(data.shape)
-            exit()
-            data = data.unsqueeze(0)
+            data = data.unsqueeze(0).view(1, -1, 64)
             label = label.unsqueeze(0)
             data = data.to(device)
             label = label.to(device)
 
-            output, clf_output = model(data)
+            clf_output = model(data)
             loss_clf = criterion(clf_output, label[0])
             loss = 0
             loss += loss_clf
-            for i in range(len(output)):
-                loss += criterion(output[i], label)
 
             # backprop
             optimizer.zero_grad()
@@ -157,21 +156,25 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
     eval = evaluater.evaluater()
     # for i in range(len(dataset)):
     while dataset.has_next():
-        data, label = dataset.next_batch(config.batch_size)
-        # batch_dataset, batch_label = batch_maker(
-        #     dataset[i], shuffle=False, drop_last=False, batch_size=config.batch_size
-        # )
-        # for data, label in zip(batch_dataset, batch_label):
-        data = data.to(device)
-        output, _ = model(data)
-        output = torch.argmax(output[-1], axis=1)
-        # print(label.detach().numpy().shape)
-        # print(preds.detach().numpy()[0])
+        srcdata, srclabel = dataset.next_batch(config.batch_size)
+        bd, bl = batch_maker([srcdata[0], srclabel[0]])
+        for data, label in zip(bd, bl):
+            data = data.unsqueeze(0).view(1, -1, 64)
+            # batch_dataset, batch_label = batch_maker(
+            #     dataset[i], shuffle=False, drop_last=False, batch_size=config.batch_size
+            # )
+            # for data, label in zip(batch_dataset, batch_label):
+            data = data.to(device)
+            output = model(data)
+            output = torch.argmax(output, axis=1)
+            # output = torch.argmax(output[-1], axis=1)
+            # print(label.detach().numpy().shape)
+            # print(preds.detach().numpy()[0])
 
-        labels.extend(label.detach().numpy().reshape(-1))
-        preds.extend(output.cpu().detach().numpy().reshape(-1))
-        # labels.extend(list(label.detach().numpy()[0]))
-        # preds.extend(list(output.cpu().detach().numpy()[0]))
+            labels.extend(label.detach().numpy().reshape(-1))
+            preds.extend(output.cpu().detach().numpy().reshape(-1))
+            # labels.extend(list(label.detach().numpy()[0]))
+            # preds.extend(list(output.cpu().detach().numpy()[0]))
     dataset.reset()
     labels, preds = np.array(labels), np.array(preds)
     # print(labels[:5])

@@ -122,8 +122,6 @@ if __name__ == "__main__":
     num_stages, num_layers, num_f_maps, dim, num_classes = 2, 3, 4, 5, 8
     model = MultiStageModel(num_stages, num_layers, num_f_maps, dim, num_classes)
     mask = torch.zeros(num_f_maps, num_classes, 5, dtype=torch.float)
-
     f = torch.randn(1, 1000, 8, 8, 16)
-    # f = torch.randn(4, 5, 1)
     print(f.shape)
     print(model(f).shape)
