@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
-
 from featModel import featModel, imgModel
 
 

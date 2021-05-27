@@ -1,5 +1,8 @@
 import argparse
 import os
+import sys
+
+sys.path.append("../")
 import pickle
 import random
 import time
@@ -12,11 +15,11 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 import yaml
 from addict import Dict
-
-from evaluater import evaluater
 from featDataset import featDataset, imgDataset
 from featModel import featModel, imgModel
 from stacking import stacking
+
+from evaluater import evaluater
 
 SEED = 14
 torch.manual_seed(SEED)
@@ -40,7 +43,6 @@ def get_arg():
     parser = argparse.ArgumentParser(description="image model for action segmentation")
     parser.add_argument("config", type=str, help="path of a config file")
     args = parser.parse_args()
-
     config = Dict(yaml.safe_load(open(args.config)))
     return config
 
@@ -78,7 +80,7 @@ def main():
 
     best_eval = 0
     for epoch in range(1, 1 + config.epochs):
-        print("epoch:", epoch)
+        print("\nepoch:", epoch)
         dataset_perm = np.random.permutation(range(len(Traindataset)))
         t0 = time.time()
         train(
@@ -118,7 +120,6 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
             output = model(data)
             loss = criterion(output, label)
 
-            # backprop
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

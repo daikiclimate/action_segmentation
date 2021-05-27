@@ -3,5 +3,5 @@ save_folder : "../../../models/"
 lr : 0.001
 epochs : 10
 batch_size : 64
-# type : "feat"
-type : "img"
+type : "feat"
+# type : "img"

@@ -6,18 +6,17 @@ sys.path.append("../")
 import random
 import time
 
-import evaluater
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import utils
 import yaml
 from addict import Dict
-
-# from model import Trainer
 from batch_gen import BatchGenerator
-# from mstcn import MultiStageModel
+
+import evaluater
+import utils
+from evaluater import evaluater
 from lstm import LSTMclassifier
 
 SEED = 14
