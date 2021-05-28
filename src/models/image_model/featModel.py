@@ -19,10 +19,12 @@ class classifier(nn.Module):
             nn.BatchNorm2d(self.hidden2),
             nn.ReLU(inplace=True),
         )
-        self.fc = nn.Sequential(
-            nn.Linear(self.hidden2 * 8 * 8, self.hidden1), nn.ReLU(inplace=True)
-        )
+        self.fc = nn.Linear(self.hidden2 * 8 * 8, self.hidden1)
+        self.activ = nn.ReLU()
+        nn.init.kaiming_normal_(self.fc.weight)
+
         self.fc2 = nn.Linear(self.hidden1, 11)
+        nn.init.kaiming_normal_(self.fc2.weight)
 
     def forward(self, x):
         x = self.AdaptivePool(x)
@@ -30,6 +32,7 @@ class classifier(nn.Module):
         x = self.conv2(x)
         x = x.view(-1, self.hidden2 * 8 * 8)
         x = self.fc(x)
+        x = self.activ(x)
         x = self.fc2(x)
         return x
 

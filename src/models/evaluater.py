@@ -12,19 +12,29 @@ class evaluater:
         self.x = label
         self.y = pred
 
-    def _print_acc(self, r=5):
-        self.accuracy = len(self.x[self.x == self.y]) / len(self.x)
+    def _print_acc(self, r=5, ignore_classes=False):
+        x_total, y_total = self.x, self.y
+        if not ignore_classes:
+            self.accuracy = len(x_total[x_total == y_total]) / len(x_total)
+        else:
+            for ic in ignore_classes:
+                c = utils.label_to_id(ic)
+                index = x_total == c
+                x_total = x_total[~index]
+                y_total = y_total[~index]
+            self.accuracy = len(x_total[x_total == y_total]) / len(x_total)
         print("total_accuracy:", round(self.accuracy, r))
         if True:
             for c in range(self.classes):
-                x = self.x[self.x == c]
-                y = self.y[self.x == c]
-                accuracy = len(x[x == y]) / len(x)
-                print(utils.id_to_label(c), ":", round(accuracy, r))
+                x = x_total[x_total == c]
+                y = y_total[x_total == c]
+                if len(x) != 0:
+                    accuracy = len(x[x == y]) / len(x)
+                    print(utils.id_to_label(c), ":", round(accuracy, r))
         return accuracy
 
-    def print_eval(self, mode=None):
-        self._print_acc()
+    def print_eval(self, mode=None, ignore_classes=("opening", "ending")):
+        self._print_acc(ignore_classes=ignore_classes)
         self.return_F1_purpuse_score()
 
     def return_eval_score(self):

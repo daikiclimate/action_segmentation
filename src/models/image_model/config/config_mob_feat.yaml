@@ -1,7 +1,7 @@
 model : "mobilenet"
 save_folder : "../../../models/"
 lr : 0.001
-epochs : 10
+epochs : 30
 batch_size : 64
 type : "feat"
 # type : "img"

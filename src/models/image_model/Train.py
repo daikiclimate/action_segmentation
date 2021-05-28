@@ -54,6 +54,7 @@ def main():
         os.makedirs(config.save_folder)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("device:", device)
     if device == "cuda":
         torch.set_default_tensor_type("torch.cuda.FloatTensor")
     else:
@@ -76,7 +77,12 @@ def main():
 
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=config.lr)
-    criterion = nn.CrossEntropyLoss()
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9)
+    weight = torch.ones(11).cuda()
+    if True:
+        weight[0] = 0
+        weight[-1] = 0
+    criterion = nn.CrossEntropyLoss(weight=weight)
 
     best_eval = 0
     for epoch in range(1, 1 + config.epochs):
@@ -92,8 +98,10 @@ def main():
             device=device,
             dataset_perm=dataset_perm,
         )
+        scheduler.step()
+        print(f"\nlr: {scheduler.get_lr()}")
         t1 = time.time()
-        print("\ntraining time :", round(t1 - t0))
+        print(f"\ntraining time :{round(t1 - t0)} sec")
 
         best_eval = test(
             model=model,
@@ -126,7 +134,7 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
 
             total_loss += loss.item()
             counter += 1
-        print("\r", total_loss / counter, end="")
+        print(f"\rtotal_loss: [{total_loss / counter}]", end="")
 
 
 def test(model, dataset, config, device, best_eval=0, th=0.6):
@@ -151,7 +159,6 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
     eval.set_data(labels, preds)
     eval.print_eval(["accuracy"])
     score = eval.return_eval_score()
-    print(score)
     if score > best_eval and score > th:
         path = os.path.join(
             config.save_folder,
