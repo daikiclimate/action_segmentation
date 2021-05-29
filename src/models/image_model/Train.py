@@ -20,6 +20,7 @@ from featModel import featModel, imgModel
 from stacking import stacking
 
 from evaluater import evaluater
+import tqdm
 
 SEED = 14
 torch.manual_seed(SEED)
@@ -99,7 +100,7 @@ def main():
             dataset_perm=dataset_perm,
         )
         scheduler.step()
-        print(f"\nlr: {scheduler.get_lr()}")
+        print(f"\nlr: {scheduler.get_last_lr()}")
         t1 = time.time()
         print(f"\ntraining time :{round(t1 - t0)} sec")
 
@@ -116,7 +117,7 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
     model.train()
     total_loss = 0
     counter = 0
-    for i in dataset_perm:
+    for i in tqdm.tqdm(dataset_perm):
         batch_dataset, batch_label = batch_maker(
             dataset[i], batch_size=config.batch_size, shuffle=config.shuffle
         )
