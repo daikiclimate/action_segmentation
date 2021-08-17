@@ -18,6 +18,7 @@ import evaluater
 import utils
 from evaluater import evaluater
 from lstm import LSTMclassifier
+import tqdm
 
 SEED = 14
 torch.manual_seed(SEED)
@@ -69,11 +70,6 @@ def main():
     Testdataset = BatchGenerator(num_classes, actions_dict, gt_path, features_path)
     Testdataset.read_data(mode="test")
 
-    # while Traindataset.has_next():
-    #     batch_input, batch_target = Traindataset.next_batch(config.batch_size)
-
-    # Testdataset = featDataset(mode="test", feat_model=config.model)
-    # model = featModel(input_channel=1280)
     num_stages = 2
     num_layers = 2
     num_f_maps = 8
@@ -87,6 +83,7 @@ def main():
 
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=config.lr)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9)
     criterion = nn.CrossEntropyLoss()
 
     best_eval = 0
@@ -103,7 +100,10 @@ def main():
             # dataset_perm=dataset_perm,
         )
         t1 = time.time()
-        print("\ntraining time :", round(t1 - t0))
+        scheduler.step()
+        print(f"\nlr: {scheduler.get_last_lr()}")
+        t1 = time.time()
+        print(f"\ntraining time :{round(t1 - t0)} sec")
 
         best_eval = test(
             model=model,
@@ -152,7 +152,8 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
     model.eval()
     labels = []
     preds = []
-    eval = evaluater.evaluater()
+    eval = evaluater()
+    # eval = evaluater.evaluater()
     # for i in range(len(dataset)):
     while dataset.has_next():
         data, label = dataset.next_batch(config.batch_size)

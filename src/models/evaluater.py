@@ -9,19 +9,21 @@ class evaluater:
         self.classes = classes
 
     def set_data(self, label, pred):
-        self.x = label
-        self.y = pred
+        self.x = np.array(label)
+        self.y = np.array(pred)
 
     def _print_acc(self, r=5, ignore_classes=False):
         x_total, y_total = self.x, self.y
         if not ignore_classes:
             self.accuracy = len(x_total[x_total == y_total]) / len(x_total)
         else:
+            index_total = np.array([False for _ in range(x_total.shape[0])])
             for ic in ignore_classes:
                 c = utils.label_to_id(ic)
                 index = x_total == c
-                x_total = x_total[~index]
-                y_total = y_total[~index]
+                index_total = index | index_total
+            x_total = x_total[~index_total]
+            y_total = y_total[~index_total]
             self.accuracy = len(x_total[x_total == y_total]) / len(x_total)
         print("total_accuracy:", round(self.accuracy, r))
         if True:

@@ -1,4 +1,4 @@
-epochs: 100
+epochs: 30
 save_folder: "../../../models/"
 model : "lstm"
 batch_size: 1

@@ -111,6 +111,7 @@ def main():
             device=device,
             best_eval=best_eval,
         )
+    torch.save(model.state_dict(), "model.pth")
 
 
 def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
@@ -154,6 +155,7 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
 
             labels.extend(label.detach().numpy())
             preds.extend(output.cpu().detach().numpy())
+
     labels, preds = np.array(labels), np.array(preds)
     # with open("test.pkl", "wb") as f:
     # pickle.dump(preds, f)

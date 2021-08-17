@@ -10,7 +10,6 @@ class LSTMclassifier(nn.Module):
         lstm_layers,
         lstm_hidden,
         bidirectional=True,
-        dropout=True,
         device="cuda:0",
     ):
         super(LSTMclassifier, self).__init__()
@@ -18,7 +17,6 @@ class LSTMclassifier(nn.Module):
         self.lstm_layers = lstm_layers
         self.lstm_hidden = lstm_hidden
         self.bidirectional = bidirectional
-        self.dropout = dropout
         self.device = device
 
         self.conv_1x1 = nn.Conv2d(512, 1, 1)
@@ -34,8 +32,6 @@ class LSTMclassifier(nn.Module):
             self.lin = nn.Linear(2 * self.lstm_hidden, 11)
         else:
             self.lin = nn.Linear(self.lstm_hidden, 11)
-        if self.dropout:
-            self.drop = nn.Dropout(0.5)
 
     def init_hidden(self, batch_size):
         if self.bidirectional:
@@ -73,14 +69,11 @@ class LSTMclassifier(nn.Module):
         batch_size, timesteps, C, H, W = x.size()
         self.hidden = self.init_hidden(batch_size)
 
-        # CNN forward
         c_in = x.view(batch_size * timesteps, C, H, W)
         c_out = self.conv_1x1(c_in)
 
         # c_out = self.cnn(c_in)
         # c_out = c_out.mean(3).mean(2)
-        # if self.dropout:
-        #     c_out = self.drop(c_out)
 
         # LSTM forward
         r_in = c_out.view(batch_size, timesteps, -1)

@@ -30,6 +30,7 @@ class featDataset(data.Dataset):
             + self.files[idx][:-4]
             + ".pth"
         )
+
         # path = "../../../data/feature_ext/" + self.feat_model + "/" + "r25" + ".pth"
         feature = torch.load(path)
         labelpath = (
@@ -43,7 +44,7 @@ class featDataset(data.Dataset):
             lines = f.read().splitlines()
         labels = [utils.label_to_id(i) for i in lines]
         labels = torch.tensor(labels)
-        return feature, labels
+        return feature, labels, self.files[idx]
 
     def __len__(self):
         return len(self.files)
@@ -107,5 +108,3 @@ if __name__ == "__main__":
     d = imgDataset()
 
     d[0]
-
-#
