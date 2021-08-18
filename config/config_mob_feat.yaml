@@ -1,0 +1,11 @@
+device: "cuda:0"
+model : "mobilenet"
+input_channel: 1280
+align_size: 8
+
+save_folder : "./weight/"
+lr : 0.001
+epochs : 30
+batch_size : 64
+type : "feat"
+shuffle: True

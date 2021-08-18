@@ -1,0 +1,137 @@
+import math
+import os
+
+import numpy as np
+import pandas as pd
+import torch
+import torch.utils.data as data
+import utils
+from PIL import Image
+
+
+class FeatDataset(data.Dataset):
+    def __init__(
+        self,
+        mode="train",
+        excel_dir="data/training/information.xlsx",
+        feat_model="vgg",
+    ):
+        self.feat_model = feat_model
+        df = pd.read_excel(excel_dir)
+        df = df[df["mode"] == mode]
+        self.files = df.filename.values
+
+    def __getitem__(self, idx):
+        path = (
+            "./data/training/feature_ext/"
+            + self.feat_model
+            + "/"
+            + self.files[idx][:-4]
+            + ".pth"
+        )
+
+        # path = "../../../data/feature_ext/" + self.feat_model + "/" + "r25" + ".pth"
+        feature = torch.load(path)
+        labelpath = (
+            "./data/training/feature_ext/"
+            + self.feat_model
+            + "/"
+            + self.files[idx][:-4]
+            + ".txt"
+        )
+        with open(labelpath, mode="r") as f:
+            lines = f.read().splitlines()
+        labels = [utils.label_to_id(i) for i in lines]
+        labels = torch.tensor(labels)
+        bd, bl = batch_maker(
+            feature, labels, shuffle=True, drop_last=True, batch_size=8, n_sample=10
+        )
+
+        return bd, bl
+        # return feature, labels, self.files[idx]
+
+    def __len__(self):
+        return len(self.files)
+
+
+class ImgDataset(data.Dataset):
+    def __init__(
+        self,
+        mode="train",
+        excel_dir="./data/training/information.xlsx",
+        feat_model="vgg",
+        transform=None,
+    ):
+        self.feat_model = feat_model
+        df = pd.read_excel(excel_dir)
+        df = df[df["mode"] == mode]
+        self.files = df.filename.values
+        self.transform = transform
+
+    def __getitem__(self, idx):
+        path = os.path.join(
+            "./data/training/tmp_images/",
+            self.files[idx][:-4] + "_resized",
+        )
+        files = os.listdir(path)
+        images = [f for f in files if f[-3:] == "jpg"]
+        texts = [f for f in files if f[-3:] == "txt"]
+        images.sort()
+        texts.sort()
+        num = min(len(images), len(texts))
+        if len(images) > len(texts):
+            images = images[:num]
+        elif len(images) < len(texts):
+            texts = texts[:num]
+
+        if len(images) != len(texts):
+            assert "image size and texts size not match"
+            exit()
+
+        labels = []
+        for i in texts:
+            with open(os.path.join(path, i), mode="r") as f:
+                labels.append(f.read())
+        labels = [utils.label_to_id(i) for i in labels]
+        labels = torch.tensor(labels)
+        imgs = []
+        for i in images:
+            im = Image.open(os.path.join(path, i))
+            im = self.transform(im)
+            imgs.append(im.unsqueeze(0))
+        imgs = torch.cat(imgs, axis=0)
+        return imgs, labels
+
+    def __len__(self):
+        return len(self.files)
+
+
+def batch_maker(data, label, shuffle=True, drop_last=True, batch_size=8, n_sample=10):
+    # data, label = dataset[0], dataset[1]
+    if shuffle:
+        p = torch.randperm(data.size()[0])
+        data = data[p]
+        label = label[p]
+    n = len(data) // batch_size
+
+    batched_data = []
+    batched_label = []
+    if not drop_last:
+        n += 1
+    for i in range(n):
+        if n_sample == i:
+            break
+        b = data[i * batch_size : i * batch_size + batch_size, :, :, :]
+        lb = label[i * batch_size : i * batch_size + batch_size]
+        batched_data.append(b.unsqueeze(0))
+        # batched_data.append(b)
+        batched_label.append(lb.unsqueeze(0))
+        # batched_label.append(lb)
+    batched_data = torch.cat(batched_data, 0)
+    batched_label = torch.cat(batched_label, 0)
+    return batched_data, batched_label
+
+
+if __name__ == "__main__":
+    # d = featDataset()
+    d = imgDataset()
