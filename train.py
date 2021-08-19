@@ -53,6 +53,11 @@ def main():
     for epoch in range(1, 1 + config.epochs):
         print("\nepoch:", epoch)
         dataset_perm = np.random.permutation(range(len(train_set)))
+        if config.repeat:
+            for _ in range(config.repeat):
+                dp = np.random.permutation(range(len(train_set)))
+                dataset_perm = np.concatenate([dataset_perm, dp])
+
         t0 = time.time()
         train(
             model=model,
@@ -98,7 +103,7 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
 
             total_loss += loss.item()
             counter += 1
-        print(f"\rtotal_loss: [{total_loss / counter}]", end="")
+    print(f"\rtotal_loss: [{total_loss / counter}]", end="")
 
 
 def test(model, dataset, config, device, best_eval=0, th=0.6):

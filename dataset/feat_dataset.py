@@ -1,5 +1,6 @@
 import math
 import os
+import random
 
 import numpy as np
 import pandas as pd
@@ -15,11 +16,14 @@ class FeatDataset(data.Dataset):
         mode="train",
         excel_dir="data/training/information.xlsx",
         feat_model="vgg",
+        config=None,
     ):
         self.feat_model = feat_model
         df = pd.read_excel(excel_dir)
         df = df[df["mode"] == mode]
         self.files = df.filename.values
+        self._config = config
+        self._mode = mode
 
     def __getitem__(self, idx):
         path = (
@@ -30,7 +34,6 @@ class FeatDataset(data.Dataset):
             + ".pth"
         )
 
-        # path = "../../../data/feature_ext/" + self.feat_model + "/" + "r25" + ".pth"
         feature = torch.load(path)
         labelpath = (
             "./data/training/feature_ext/"
@@ -43,12 +46,19 @@ class FeatDataset(data.Dataset):
             lines = f.read().splitlines()
         labels = [utils.label_to_id(i) for i in lines]
         labels = torch.tensor(labels)
+        if self._mode == "test":
+            return feature.unsqueeze(0), labels.unsqueeze(0)
+        if self._config.head == "lstm":
+            return lstm_slice_dataset(feature, labels, self._config.batch_size)
         bd, bl = batch_maker(
-            feature, labels, shuffle=True, drop_last=True, batch_size=8, n_sample=10
+            feature,
+            labels,
+            shuffle=self._config.shuffle,
+            drop_last=True,
+            batch_size=self._config.batch_size,
+            n_sample=self._config.n_sample,
         )
-
         return bd, bl
-        # return feature, labels, self.files[idx]
 
     def __len__(self):
         return len(self.files)
@@ -107,7 +117,6 @@ class ImgDataset(data.Dataset):
 
 
 def batch_maker(data, label, shuffle=True, drop_last=True, batch_size=8, n_sample=10):
-    # data, label = dataset[0], dataset[1]
     if shuffle:
         p = torch.randperm(data.size()[0])
         data = data[p]
@@ -124,12 +133,18 @@ def batch_maker(data, label, shuffle=True, drop_last=True, batch_size=8, n_sampl
         b = data[i * batch_size : i * batch_size + batch_size, :, :, :]
         lb = label[i * batch_size : i * batch_size + batch_size]
         batched_data.append(b.unsqueeze(0))
-        # batched_data.append(b)
         batched_label.append(lb.unsqueeze(0))
-        # batched_label.append(lb)
     batched_data = torch.cat(batched_data, 0)
     batched_label = torch.cat(batched_label, 0)
     return batched_data, batched_label
+
+
+def lstm_slice_dataset(data, label, batch_size):
+    n = len(data) - batch_size
+    index = random.randint(0, n)
+    data = data[index : index + batch_size]
+    label = label[index : index + batch_size]
+    return data.unsqueeze(0), label.unsqueeze(0)
 
 
 if __name__ == "__main__":

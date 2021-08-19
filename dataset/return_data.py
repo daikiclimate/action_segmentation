@@ -7,8 +7,10 @@ from torch.utils.data import DataLoader
 def return_dataset(config):
     dataset_type = config.type
     if dataset_type == "feat":
-        train_dataset = FeatDataset(mode="train", feat_model=config.model)
-        test_dataset = FeatDataset(mode="test", feat_model=config.model)
+        train_dataset = FeatDataset(
+            mode="train", feat_model=config.model, config=config
+        )
+        test_dataset = FeatDataset(mode="test", feat_model=config.model, config=config)
     elif dataset_type == "img":
         transforms = return_img_transform()
         train_dataset = ImgDataset(mode="train", transform=transforms)

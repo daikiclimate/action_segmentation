@@ -15,6 +15,7 @@ class evaluater:
     def _print_acc(self, r=5, ignore_classes=False):
         x_total, y_total = self.x, self.y
         if not ignore_classes:
+            # if not ignore_classes:
             self.accuracy = len(x_total[x_total == y_total]) / len(x_total)
         else:
             index_total = np.array([False for _ in range(x_total.shape[0])])

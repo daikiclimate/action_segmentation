@@ -1,0 +1,18 @@
+device: "cuda:0"
+model : "vgg"
+head: "lstm"
+
+width_mult: 1
+lstm_layers: 2 # better than 1
+lstm_hidden: 512
+
+epochs: 30
+save_folder: "./weight/"
+batch_size: 32
+shuffle: False
+n_sample: 1
+
+lr : 0.0001
+type: "feat"
+
+repeat: 50
