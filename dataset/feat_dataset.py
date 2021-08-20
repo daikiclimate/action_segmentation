@@ -48,7 +48,7 @@ class FeatDataset(data.Dataset):
         labels = torch.tensor(labels)
         if self._mode == "test":
             return feature.unsqueeze(0), labels.unsqueeze(0)
-        if self._config.head == "lstm":
+        if self._config.head == "lstm" or self._config.head == "tcn":
             return lstm_slice_dataset(feature, labels, self._config.batch_size)
         bd, bl = batch_maker(
             feature,

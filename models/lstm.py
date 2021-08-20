@@ -71,7 +71,7 @@ class LSTMClassifier(nn.Module):
 
 
 if __name__ == "__main__":
-    model = LSTMclassifier(1, 1, 256).cuda()
+    model = LSTMClassifier(1, 1, 256).cuda()
     data = torch.rand((1, 64, 512, 8, 8)).cuda()
     out = model(data)
     print(out.shape)
