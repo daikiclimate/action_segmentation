@@ -1,6 +1,5 @@
 import argparse
 import os
-
 import random
 import time
 
@@ -8,13 +7,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import tqdm
 import yaml
 from addict import Dict
-from dataset import return_data
-from models import build_model
 
+import wandb
+from dataset import return_data
 from evaluater import evaluater
-import tqdm
+from models import build_model
 
 SEED = 14
 torch.manual_seed(SEED)
@@ -28,11 +28,23 @@ def get_arg():
     return config
 
 
-def main():
+def sweep(path):
+    config = dict(yaml.safe_load(open(path)))
+    sweep_id = wandb.sweep(config, project="ActionPurposeSegmentation")
+    wandb.agent(sweep_id, main)
+
+
+def main(sweep=False):
     config = get_arg()
+
     config.save_folder = os.path.join(config.save_folder, config.model)
     if not os.path.exists(config.save_folder):
         os.makedirs(config.save_folder)
+
+    if config.wandb:
+        name = config.model + "_" + config.head
+        wandb.init(project="ActionPurposeSegmentation", config=config, name=name)
+        config = wandb.config
 
     device = config.device
     torch.set_default_tensor_type("torch.cuda.FloatTensor")
@@ -59,7 +71,7 @@ def main():
                 dataset_perm = np.concatenate([dataset_perm, dp])
 
         t0 = time.time()
-        train(
+        train_loss = train(
             model=model,
             optimizer=optimizer,
             criterion=criterion,
@@ -80,6 +92,16 @@ def main():
             device=device,
             best_eval=best_eval,
         )
+        if config.wandb:
+            wandb.log(
+                {
+                    "epoch": epoch,
+                    "loss": train_loss,
+                    "acc": best_eval,
+                    "lr": scheduler.get_last_lr(),
+                }
+            )
+
     torch.save(model.state_dict(), "model.pth")
 
 
@@ -104,6 +126,7 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
             total_loss += loss.item()
             counter += 1
     print(f"\rtotal_loss: [{total_loss / counter}]", end="")
+    return total_loss / counter
 
 
 def test(model, dataset, config, device, best_eval=0, th=0.6):
@@ -140,29 +163,8 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
         # torch.save(model.state_dict(), path)
     return max(score, best_eval)
 
-    # eval.acc(labels, preds)
-
-
-# def batch_maker(dataset, shuffle=True, drop_last=True, batch_size=8, n_sample = 100):
-#     data, label = dataset[0], dataset[1]
-#     if shuffle:
-#         p = torch.randperm(data.size()[0])
-#         data = data[p]
-#         label = label[p]
-#     n = len(data) // batch_size
-#
-#     batched_data = []
-#     batched_label = []
-#     if not drop_last:
-#         n += 1
-#     for i in range(n):
-#         if n_sample < n:
-#             break
-#         b = data[i * batch_size : i * batch_size + batch_size, :, :, :]
-#         lb = label[i * batch_size : i * batch_size + batch_size]
-#         batched_data.append(b)
-#         batched_label.append(lb)
-#     return batched_data, batched_label
 
 if __name__ == "__main__":
-    main()
+    path = "config/config_tcn_sweep.yaml"
+    # main()
+    sweep(path)
