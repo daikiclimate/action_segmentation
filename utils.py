@@ -30,3 +30,19 @@ def id_to_label(i):
         10: "ending",
     }
     return labels[i]
+
+def return_labels():
+    return [
+        "opening",
+        "moving",
+        "hidden",
+        "painting",
+        "battle",
+        "respawn",
+        "superjump",
+        "object",
+        "special",
+        "map",
+        "ending",
+        ]
+
