@@ -13,7 +13,7 @@ from addict import Dict
 
 import wandb
 from dataset import return_data
-from evaluater import evaluater
+from evaluator import evaluator
 from models import build_model
 
 SEED = 14
@@ -133,7 +133,7 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
     model.eval()
     labels = []
     preds = []
-    eval = evaluater()
+    eval = evaluator()
     for i in range(len(dataset)):
         batch_dataset, batch_label = dataset[i]
         for data, label in zip(batch_dataset, batch_label):
@@ -166,5 +166,5 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
 
 if __name__ == "__main__":
     path = "config/config_tcn_sweep.yaml"
-    # main()
-    sweep(path)
+    main()
+    # sweep(path)

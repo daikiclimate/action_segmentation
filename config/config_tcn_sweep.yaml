@@ -4,8 +4,12 @@ metric:
   goal: 'maximize'   
 parameters: 
   batch_size:
-    values: [256, 128, 64, 32]
+    values: [256]
+    # values: [256, 128, 64, 32] -> 256
   input_channel: 
-    values: [32, 16, 8, 4, 1]
+    values: [8]
+    # values: [32, 16, 8, 4, 1] -> [8]
   num_channels:
-    values: [[100, 100], [100], [100, 100, 100]]
+    values: [[500, 100]]
+    # values: [[100, 100], [300, 100], [500, 100], [300, 300], [500, 300]] -> [500, 100]
+    # values: [[100, 100], [100], [100, 100, 100]] -> [100, 100]
