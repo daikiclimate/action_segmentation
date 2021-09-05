@@ -6,7 +6,6 @@ input_channel: 8
 input_size: 8
 output_size: 11
 num_channels: [500, 100]
-# num_channels: [200, 100] 0.65
 
 epochs: 30
 save_folder: "./weight/"
@@ -17,6 +16,10 @@ n_sample: 1
 lr : 0.001
 type: "feat"
 
+loss_type: "ce"
+pairs: [["moving","hidden"], ["painting","battle"]]
+
 repeat: 50
 
+# wandb: False
 wandb: True

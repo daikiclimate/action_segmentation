@@ -15,6 +15,7 @@ import wandb
 from dataset import return_data
 from evaluator import evaluator
 from models import build_model
+from build_loss import build_loss_func
 
 SEED = 14
 torch.manual_seed(SEED)
@@ -59,7 +60,9 @@ def main(sweep=False):
     if True:
         weight[0] = 0
         weight[-1] = 0
-    criterion = nn.CrossEntropyLoss(weight=weight)
+    # criterion = nn.CrossEntropyLoss(weight=weight)
+    criterion = build_loss_func(config, weight)
+    
 
     best_eval = 0
     for epoch in range(1, 1 + config.epochs):
@@ -112,7 +115,6 @@ def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
     for i in tqdm.tqdm(dataset_perm):
         batch_dataset, batch_label = dataset[dataset_perm[i]]
         for data, label in zip(batch_dataset, batch_label):
-            # for data, label in zip(batch_dataset, batch_label):
             data = data.to(device)
             label = label.to(device)
 
