@@ -12,10 +12,10 @@ import yaml
 from addict import Dict
 
 import wandb
+from build_loss import build_loss_func
 from dataset import return_data
 from evaluator import evaluator
 from models import build_model
-from build_loss import build_loss_func
 
 SEED = 14
 torch.manual_seed(SEED)
@@ -62,7 +62,6 @@ def main(sweep=False):
         weight[-1] = 0
     # criterion = nn.CrossEntropyLoss(weight=weight)
     criterion = build_loss_func(config, weight)
-    
 
     best_eval = 0
     for epoch in range(1, 1 + config.epochs):
@@ -83,6 +82,7 @@ def main(sweep=False):
             device=device,
             dataset_perm=dataset_perm,
         )
+
         scheduler.step()
         print(f"\nlr: {scheduler.get_last_lr()}")
         t1 = time.time()
@@ -105,7 +105,8 @@ def main(sweep=False):
                 }
             )
 
-    torch.save(model.state_dict(), "model.pth")
+    save_path = os.path.join(config.save_folder, f"{config.head}.pth")
+    torch.save(model.state_dict(), save_path)
 
 
 def train(model, optimizer, criterion, dataset, config, device, dataset_perm):
@@ -137,7 +138,7 @@ def test(model, dataset, config, device, best_eval=0, th=0.6):
     preds = []
     eval = evaluator()
     for i in range(len(dataset)):
-        batch_dataset, batch_label = dataset[i]
+        batch_dataset, batch_label, _ = dataset[i]
         for data, label in zip(batch_dataset, batch_label):
             data = data.to(device)
             output = model(data)

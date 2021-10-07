@@ -100,13 +100,21 @@ class TCN(nn.Module):
         self.linear = nn.Linear(num_channels[-1], output_size)
         self.init_weights()
         self._red_dim = nn.Conv2d(512, red_dim, 1)
+        self._nn_linear = nn.Linear(8 ** 3, 11)
+        self._attention_liner = nn.Linear(8 ** 3, 11)
+        self._lstm_attention = True
+        self._sigmoid = nn.Sigmoid()
 
     def init_weights(self):
         self.linear.weight.data.normal_(0, 0.01)
 
     def forward(self, x):
         x = self._red_dim(x)
+
         s = x.size()
+        nn_x = x.reshape(s[0], -1)
+        attention = self._attention_liner(nn_x)
+        nn_x = self._nn_linear(nn_x)
         if len(s) != 3:
             x = x.view(1, s[0], -1)
             x = x.permute([0, 2, 1]).contiguous()
@@ -117,6 +125,10 @@ class TCN(nn.Module):
         x = x.view(bs * f, seq).contiguous()
 
         x = self.linear(x)
+        if self._lstm_attention:
+            attention = self._sigmoid(attention)
+            x = nn_x * attention + x * (1 - attention)
+
         return x
 
 

@@ -17,9 +17,10 @@ lr : 0.001
 type: "feat"
 
 loss_type: "ce"
+# pairs: []
 pairs: [["moving","hidden"], ["painting","battle"]]
 
 repeat: 50
 
-# wandb: False
-wandb: True
+# wandb: True
+wandb: False

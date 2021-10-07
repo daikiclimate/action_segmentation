@@ -6,8 +6,9 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.utils.data as data
-import utils
 from PIL import Image
+
+import utils
 
 
 class FeatDataset(data.Dataset):
@@ -47,7 +48,7 @@ class FeatDataset(data.Dataset):
         labels = [utils.label_to_id(i) for i in lines]
         labels = torch.tensor(labels)
         if self._mode == "test":
-            return feature.unsqueeze(0), labels.unsqueeze(0)
+            return feature.unsqueeze(0), labels.unsqueeze(0), self.files[idx][:-4]
         if self._config.head == "lstm" or self._config.head == "tcn":
             return lstm_slice_dataset(feature, labels, self._config.batch_size)
         bd, bl = batch_maker(
@@ -148,5 +149,7 @@ def lstm_slice_dataset(data, label, batch_size):
 
 
 if __name__ == "__main__":
-    # d = featDataset()
-    d = imgDataset()
+    d = featDataset()
+    for i in d:
+        pass
+    # d = imgDataset()
