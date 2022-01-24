@@ -1,7 +1,7 @@
+from torch.utils.data import DataLoader
+
 from .feat_dataset import FeatDataset, ImgDataset
 from .transform import return_img_transform
-
-from torch.utils.data import DataLoader
 
 
 def return_dataset(config):
