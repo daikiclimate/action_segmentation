@@ -34,11 +34,14 @@ def main():
     model = build_model.build_model(config)
     config.save_folder = os.path.join(config.save_folder, config.model)
     model = model.to(device)
+    use_time = False
+    use_time = True
     if use_mse:
         model_path = os.path.join(config.save_folder, f"{config.head}_mse.pth")
+    elif use_time:
+        model_path = os.path.join(config.save_folder, f"{config.head}_time.pth")
     else:
         model_path = os.path.join(config.save_folder, f"{config.head}.pth")
-    model_path = os.path.join(config.save_folder, f"{config.head}_time.pth")
     model.load_state_dict(torch.load(model_path))
     model.eval()
     eval_total = evaluator()
@@ -46,6 +49,10 @@ def main():
     total_preds = []
     for i, (batch_dataset, batch_label, file_name) in enumerate(test_set):
         print(file_name)
+        if file_name == "r21":
+            pass
+        else:
+            continue
         eval = evaluator()
         labels = []
         preds = []
@@ -76,6 +83,8 @@ def main():
 
         if use_mse:
             vis_dir = f"visualize_output/{config.model}_{config.head}_mse/"
+        elif use_time:
+            vis_dir = f"visualize_output/{config.model}_{config.head}_time/"
         else:
             vis_dir = f"visualize_output/{config.model}_{config.head}/"
         if not os.path.exists(vis_dir):

@@ -1,8 +1,10 @@
 device: "cuda:0"
+# model : "mobilenet"
 model : "vgg"
 head: "NN"
 
 input_channel: 512
+# input_channel: 1280
 align_size: 8
 
 epochs : 30
@@ -19,4 +21,5 @@ pairs: []
 
 repeat: 50
 
-wandb: True
+# wandb: True
+wandb: False

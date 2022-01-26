@@ -31,6 +31,7 @@ def id_to_label(i):
     }
     return labels[i]
 
+
 def return_labels():
     return [
         "opening",
@@ -44,5 +45,4 @@ def return_labels():
         "special",
         "map",
         "ending",
-        ]
-
+    ]

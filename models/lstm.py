@@ -31,12 +31,14 @@ class LSTMClassifier(nn.Module):
         else:
             self.lin = nn.Linear(self.lstm_hidden, 11)
 
-        self._nn_liner = nn.Linear(64, 11)
-        self._attention_liner = nn.Linear(64, 11 * 2)
-        self._attention_liner = nn.Linear(64, 11)
         self._lstm_attention = True
-        self._softmax = nn.Softmax(dim=3)
-        self._sigmoid = nn.Sigmoid()
+        # self._lstm_attention = False
+        if self._lstm_attention:
+            self._nn_liner = nn.Linear(64, 11)
+            # self._attention_liner = nn.Linear(64, 11 * 2)
+            self._attention_liner = nn.Linear(64, 11)
+            # self._softmax = nn.Softmax(dim=3)
+            self._sigmoid = nn.Sigmoid()
 
     def init_hidden(self, batch_size):
         if self.bidirectional:
@@ -77,6 +79,13 @@ class LSTMClassifier(nn.Module):
             out1 = self._nn_liner(r_in)
             attention = self._attention_liner(r_in)
             attention = self._sigmoid(attention)
+            if True:
+                # if False:
+                import numpy as np
+
+                att = attention.detach().cpu().numpy()
+                np.save("visualize_output/r21_attention.npy", att)
+                exit()
             # attention = attention.view(batch_size, timesteps, -1, 2)
             # attention = self._softmax(attention)
             out = out1 * attention + out * (1 - attention)
